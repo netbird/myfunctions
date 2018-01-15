@@ -41,12 +41,12 @@ extern zend_module_entry myfunctions_module_entry;
 /*
   	Declare any global variables you may need between the BEGIN
 	and END macros here:
-
+*/
 ZEND_BEGIN_MODULE_GLOBALS(myfunctions)
 	zend_long  global_value;
 	char *global_string;
 ZEND_END_MODULE_GLOBALS(myfunctions)
-*/
+
 
 /* Always refer to the globals in your function as MYFUNCTIONS_G(variable).
    You are encouraged to rename these macros something shorter, see
