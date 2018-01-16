@@ -45,45 +45,6 @@ PHP_INI_END()
 
 /* }}} */
 
-/* Remove the following function when you have successfully modified config.m4
-   so that your module can be compiled into PHP, it exists only for testing
-   purposes. */
-
-/* Every user-visible function in PHP should document itself in the source */
-/* {{{ proto string confirm_myfunctions_compiled(string arg)
-   Return a string to confirm that the module is compiled in */
-PHP_FUNCTION(confirm_myfunctions_compiled)
-{
-	char *arg = NULL;
-	size_t arg_len, len;
-	zend_string *strg;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &arg, &arg_len) == FAILURE) {
-		return;
-	}
-
-	strg = strpprintf(0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "myfunctions", arg);
-
-	RETURN_STR(strg);
-}
-
-/* {{{ test for return value
- */
-PHP_FUNCTION(test_for_return)
-{
-	char *arg = NULL;
-	size_t arg_len;
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &arg, &arg_len) == FAILURE) {
-		return;
-	}
-	
-	RETVAL_LONG(12);
-	return;
-
-	RETURN_LONG(12);
-
-}
-
 /**
  * {{{ php_function array_get_ext(array, key, default) }}}
  * 
@@ -112,15 +73,10 @@ PHP_FUNCTION(array_get)
 
 		entry = estrndup(ZSTR_VAL(strkey), ZSTR_LEN(strkey));
 		if ((seg = php_strtok_r(entry, ".", &ptr))) {
-			//RETURN_ZVAL(seg, 1, 0);
 			do {
-				
-				// if (target == NULL || (retval = zend_hash_find(target, Z_STR(seg))) == NULL) {
 				if (target == NULL || (retval = zend_symtable_str_find(target, seg, strlen(seg))) == NULL) {
 					break;
 				}
-				//RETURN_BOOL(1);
-				// RETURN_ZVAL(retval, 1, 0);
 
 				if (Z_TYPE_P(retval) == IS_ARRAY) {
 					target = Z_ARRVAL_P(retval);
@@ -258,9 +214,6 @@ PHP_MINFO_FUNCTION(myfunctions)
 const zend_function_entry myfunctions_functions[] = {
 	PHP_FE(self_concats,	NULL)
 	PHP_FE(array_get,	NULL)
-	PHP_FE(confirm_myfunctions_compiled,	NULL)		/* For testing, remove later. */
-	PHP_FE(test_for_return,	NULL)
-
 	PHP_FE_END	/* Must be the last line in myfunctions_functions[] */
 };
 /* }}} */
