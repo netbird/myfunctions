@@ -28,20 +28,21 @@
 #include "php_myfunctions.h"
 
 /* If you declare any globals in php_myfunctions.h uncomment this:
-ZEND_DECLARE_MODULE_GLOBALS(myfunctions)
 */
+ZEND_DECLARE_MODULE_GLOBALS(myfunctions)
+
 
 /* True global resources - no need for thread safety here */
 static int le_myfunctions;
 
 /* {{{ PHP_INI
  */
-/* Remove comments and fill if you need to have entries in php.ini
+/* Remove comments and fill if you need to have entries in php.ini */
 PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("myfunctions.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_myfunctions_globals, myfunctions_globals)
     STD_PHP_INI_ENTRY("myfunctions.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_myfunctions_globals, myfunctions_globals)
 PHP_INI_END()
-*/
+
 /* }}} */
 
 /* Remove the following function when you have successfully modified config.m4
@@ -76,10 +77,72 @@ PHP_FUNCTION(test_for_return)
 		return;
 	}
 	
-	RETURN_TRUE;
+	RETVAL_LONG(12);
+	return;
+
+	RETURN_LONG(12);
 
 }
 
+/**
+ * {{{ php_function array_get_ext(array, key, default) }}}
+ * 
+ **/
+PHP_FUNCTION(array_get)
+{
+	zval *arr; // array
+	zend_string* strkey; // key
+	zval *defaultval = NULL; // default value
+	zval *retval;
+	HashTable *arrHashTable;
+
+	zval *dest_entry;
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zS|z", &arr, 
+		&strkey, &defaultval) == FAILURE) {
+		return;
+	}
+
+	if ((retval = zend_hash_find(Z_ARRVAL_P(arr), strkey)) != NULL){
+		RETURN_ZVAL(retval, 1, 0);
+	} 
+	// foreach
+	if (zend_memrchr(ZSTR_VAL(strkey), '.', ZSTR_LEN(strkey))) {
+		char *entry, *ptr, *seg;
+		HashTable *target = Z_ARRVAL_P(arr);
+
+		entry = estrndup(ZSTR_VAL(strkey), ZSTR_LEN(strkey));
+		if ((seg = php_strtok_r(entry, ".", &ptr))) {
+			//RETURN_ZVAL(seg, 1, 0);
+			do {
+				
+				// if (target == NULL || (retval = zend_hash_find(target, Z_STR(seg))) == NULL) {
+				if (target == NULL || (retval = zend_symtable_str_find(target, seg, strlen(seg))) == NULL) {
+					break;
+				}
+				//RETURN_BOOL(1);
+				// RETURN_ZVAL(retval, 1, 0);
+
+				if (Z_TYPE_P(retval) == IS_ARRAY) {
+					target = Z_ARRVAL_P(retval);
+				} else {
+					target = NULL;
+				}
+			} while ((seg = php_strtok_r(NULL, ".", &ptr)));
+		}
+		efree(entry);
+		if (retval) {
+			RETURN_ZVAL(retval, 1, 0);
+		}
+	}
+	// end foreach
+	if (defaultval) {
+		RETURN_ZVAL(defaultval, 1, 0);
+	} else {
+		RETURN_NULL();
+	}
+}
+
+/**{{{  php_function self_concats }}}**/
 PHP_FUNCTION(self_concats)
 {
 	char *str = NULL;
@@ -102,7 +165,6 @@ PHP_FUNCTION(self_concats)
 		memcpy(ptr, str, str_len);
 		ptr += str_len;
 	}
-
 	// end flag
 	*ptr = '\0';
 	RETURN_STRINGL(result, result_len);
@@ -136,6 +198,7 @@ PHP_MINIT_FUNCTION(myfunctions)
 	/* If you have INI entries, uncomment these lines
 	REGISTER_INI_ENTRIES();
 	*/
+	REGISTER_INI_ENTRIES();
 	return SUCCESS;
 }
 /* }}} */
@@ -145,8 +208,10 @@ PHP_MINIT_FUNCTION(myfunctions)
 PHP_MSHUTDOWN_FUNCTION(myfunctions)
 {
 	/* uncomment this line if you have INI entries
-	UNREGISTER_INI_ENTRIES();
+	
 	*/
+	UNREGISTER_INI_ENTRIES();
+	
 	return SUCCESS;
 }
 /* }}} */
@@ -191,9 +256,10 @@ PHP_MINFO_FUNCTION(myfunctions)
  * Every user visible function must have an entry in myfunctions_functions[].
  */
 const zend_function_entry myfunctions_functions[] = {
+	PHP_FE(self_concats,	NULL)
+	PHP_FE(array_get,	NULL)
 	PHP_FE(confirm_myfunctions_compiled,	NULL)		/* For testing, remove later. */
 	PHP_FE(test_for_return,	NULL)
-	PHP_FE(self_concats,	NULL)
 
 	PHP_FE_END	/* Must be the last line in myfunctions_functions[] */
 };
