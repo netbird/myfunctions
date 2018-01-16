@@ -42,6 +42,11 @@ PHP_INI_BEGIN()
     STD_PHP_INI_ENTRY("myfunctions.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_myfunctions_globals, myfunctions_globals)
     STD_PHP_INI_ENTRY("myfunctions.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_myfunctions_globals, myfunctions_globals)
 PHP_INI_END()
+<<<<<<< HEAD
+=======
+
+/* }}} */
+>>>>>>> b6f217fffe36576af04fef4ce99d1e001b0daeca
 
 /* }}} */
 
@@ -96,8 +101,48 @@ PHP_FUNCTION(array_get)
 	} else {
 		RETURN_NULL();
 	}
+<<<<<<< HEAD
 }
 
+=======
+	
+	RETVAL_LONG(12);
+	return;
+
+	RETURN_LONG(12);
+
+}
+
+/**
+ * {{{ php_function array_get_ext(array, key, default) }}}
+ * 
+ **/
+PHP_FUNCTION(array_get)
+{
+	zval *arr;
+	zend_string* strkey;
+	zval *defaultval;
+	zval *retval;
+	HashTable *arrHashTable;
+
+	zval *dest_entry;
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zS|z", &arr, 
+		&strkey, &defaultval) == FAILURE) {
+		return;
+	}
+
+	if ((retval = zend_hash_find(Z_ARRVAL_P(arr), strkey)) != NULL){
+		RETURN_ZVAL(retval, 1, 0);
+	} 
+	if (Z_TYPE_P(defaultval) != IS_NULL){
+
+		RETURN_ZVAL(defaultval, 1, 0);
+	} else {
+		RETURN_NULL();
+	}
+}
+
+>>>>>>> b6f217fffe36576af04fef4ce99d1e001b0daeca
 /**{{{  php_function self_concats }}}**/
 PHP_FUNCTION(self_concats)
 {
@@ -214,6 +259,11 @@ PHP_MINFO_FUNCTION(myfunctions)
 const zend_function_entry myfunctions_functions[] = {
 	PHP_FE(self_concats,	NULL)
 	PHP_FE(array_get,	NULL)
+<<<<<<< HEAD
+=======
+	PHP_FE(confirm_myfunctions_compiled,	NULL)		/* For testing, remove later. */
+	PHP_FE(test_for_return,	NULL)
+>>>>>>> b6f217fffe36576af04fef4ce99d1e001b0daeca
 	PHP_FE_END	/* Must be the last line in myfunctions_functions[] */
 };
 /* }}} */
